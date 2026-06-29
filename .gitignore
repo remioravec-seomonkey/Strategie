@@ -1,0 +1,14 @@
+# Identifiants Google — NE JAMAIS committer
+credentials/*.json
+*.key.json
+.env
+.env.*
+
+# Registre clients réel (garder seulement l'exemple versionné)
+clients/clients.json
+
+# Divers
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc

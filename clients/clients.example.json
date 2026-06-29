@@ -1,0 +1,27 @@
+{
+  "_comment": "Registre des clients de l'agence. Copiez ce fichier en clients/clients.json et remplissez-le. Claude lit ce registre pour résoudre 'le client X' vers les bons identifiants GSC + GA4.",
+  "clients": [
+    {
+      "name": "Client Exemple",
+      "slug": "client-exemple",
+      "domain": "exemple.com",
+      "gsc_site_url": "sc-domain:exemple.com",
+      "ga4_property_id": "123456789",
+      "marche": "E-commerce mode",
+      "objectifs_seo": "Croissance du trafic organique non-marque, +30% sur 6 mois",
+      "concurrents": ["concurrent-a.com", "concurrent-b.com"],
+      "notes": "Migration HTTPS faite en 2024. Priorité pages catégories."
+    },
+    {
+      "name": "Client Exemple 2",
+      "slug": "client-exemple-2",
+      "domain": "exemple2.fr",
+      "gsc_site_url": "https://www.exemple2.fr/",
+      "ga4_property_id": "987654321",
+      "marche": "SaaS B2B",
+      "objectifs_seo": "Acquisition de leads via contenu top-of-funnel",
+      "concurrents": [],
+      "notes": ""
+    }
+  ]
+}
