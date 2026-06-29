@@ -1,8 +1,14 @@
-# Guide d'installation — Accès Google (compte de service unique)
+# Guide d'installation — Accès Google
 
-Objectif : créer **un seul compte de service Google Cloud** que vous autorisez en
-lecture sur chaque propriété **Search Console** et **Google Analytics 4** de vos
-clients. Les deux serveurs MCP utilisent ce même fichier d'identifiants.
+> ⚠️ **Méthode recommandée : OAuth avec votre propre compte** — voir
+> **[`AUTH.md`](AUTH.md)**. Dans un contexte d'agence, le compte de service se
+> heurte à deux murs (Search Console refuse les comptes de service dans son UI ;
+> vous n'êtes pas admin des propriétés clients). OAuth/ADC utilise votre accès
+> existant et débloque tout sans rien demander aux clients.
+>
+> Le projet Google Cloud (`agence-seo-mcp`) et les API sont **déjà** créés/activés.
+> Pour l'auth recommandée, passez directement à `AUTH.md`. Le guide ci-dessous
+> documente l'alternative « compte de service ».
 
 ---
 

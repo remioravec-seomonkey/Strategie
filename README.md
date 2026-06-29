@@ -28,15 +28,20 @@ Claude (vous + moi)
 Les deux partagent la variable `GOOGLE_APPLICATION_CREDENTIALS` → **un seul
 compte de service** pour toute l'agence.
 
-## Installation (5 étapes)
+## Installation
 
-Tout est détaillé dans **[`docs/SETUP-GOOGLE-CLOUD.md`](docs/SETUP-GOOGLE-CLOUD.md)** :
+> **Authentification recommandée : OAuth avec votre propre compte Google** — voir
+> **[`docs/AUTH.md`](docs/AUTH.md)**. Elle utilise votre accès existant à toutes
+> les propriétés clients ; pas besoin de faire ajouter un compte de service par
+> chaque client (ce que Search Console refuse de toute façon dans son UI).
 
-1. Créer un projet Google Cloud + activer les API GSC & GA Data.
-2. Créer un compte de service, télécharger sa clé JSON → `credentials/service-account.json`.
-3. Ajouter l'email du compte de service en **Lecture** sur chaque propriété client (GSC + GA4).
-4. `cp clients/clients.example.json clients/clients.json` et remplir le registre.
-5. `cp .mcp.json.example .mcp.json`, renseigner le `GOOGLE_PROJECT_ID`, relancer Claude Code.
+1. Auth : `gcloud auth application-default login --scopes=…webmasters.readonly,…analytics.readonly,…cloud-platform` (commande complète dans `docs/AUTH.md`).
+2. `cp .mcp.json.example .mcp.json` (Option A déjà préremplie : projet `agence-seo-mcp`, fichier ADC).
+3. `cp clients/clients.example.json clients/clients.json` et remplir le registre.
+4. Relancer Claude Code et vérifier (`get_account_summaries`).
+
+L'alternative « compte de service » reste documentée dans
+[`docs/SETUP-GOOGLE-CLOUD.md`](docs/SETUP-GOOGLE-CLOUD.md).
 
 ### Prérequis
 - Node.js 18+, Python 3.10+ avec `pipx`.
