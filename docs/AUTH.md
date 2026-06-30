@@ -1,69 +1,68 @@
-# Authentification — débloquer l'accès aux propriétés clients
+# Authentification GSC — sans Python, sans gcloud
 
-## Le problème rencontré
+## Le principe
 
-L'approche « compte de service » se heurte à deux murs dans un contexte d'agence :
+On connecte Search Console **en tant que vous** (OAuth), via votre navigateur.
+Vous avez déjà accès en lecture à toutes les propriétés de vos clients : on
+réutilise cet accès. Rien à demander aux clients, aucun compte de service.
 
-1. **Search Console n'accepte pas les comptes de service dans son UI** : le
-   formulaire *Utilisateurs et autorisations* ne valide que des adresses
-   Gmail/Workspace, pas les `…@gserviceaccount.com`.
-2. **Vous n'êtes pas admin/propriétaire des propriétés de vos clients** : vous y
-   avez accès en lecture, mais vous ne pouvez pas y ajouter un tiers (le compte
-   de service). Seuls les propriétaires le peuvent.
+Le serveur `suganthan-gsc-mcp` tourne **uniquement avec Node (`npx`)** — déjà
+présent puisque Claude Code l'utilise. **Aucun Python, aucun gcloud, aucun
+fichier ADC à fabriquer.**
 
-## La solution : OAuth avec VOTRE compte (ADC)
+## A → Z
 
-Vous avez **déjà** accès en lecture à toutes ces propriétés via votre propre
-compte Google. On authentifie donc les serveurs MCP **en tant que vous**, plutôt
-qu'avec un robot que personne ne peut ajouter. Plus rien à demander aux clients.
+### 1. Créer l'identifiant OAuth (dans le navigateur)
 
-C'est le mécanisme **Application Default Credentials (ADC)** de Google.
+Tout se fait sur <https://console.cloud.google.com/> avec votre compte
+`remi.oravec@seo-monkey.fr`, dans le projet existant **`agence-seo-mcp`**
+(l'API Search Console y est déjà activée).
 
-### Étape unique : se connecter
+1. *APIs & Services → Écran de consentement OAuth* (OAuth consent screen) :
+   - Type : **External** (Externe).
+   - Nom de l'app : `GSC MCP` · e-mail d'assistance : votre e-mail.
+   - Ajoutez votre e-mail comme **utilisateur test**.
+   - **Recommandé** : cliquez **« Publier l'application » / "Publish app"**
+     (statut *In production*). Sinon le jeton expire tous les 7 jours et il faut
+     se reconnecter. En production non vérifiée, un écran d'avertissement
+     apparaîtra à la connexion → cliquez *Paramètres avancés → Continuer* (c'est
+     votre propre app, c'est normal).
+2. *APIs & Services → Identifiants (Credentials) → Créer des identifiants →
+   ID client OAuth*.
+   - Type d'application : **Application de bureau** (Desktop app).
+   - Nom : `GSC MCP OAuth` → **Créer**.
+3. **Téléchargez le fichier JSON** et enregistrez-le dans votre dossier
+   personnel, par exemple : `~/gsc-oauth-secrets.json`.
+
+### 2. Activer le serveur dans le dépôt
 
 ```bash
-gcloud auth application-default login \
-  --scopes=https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/analytics.readonly,https://www.googleapis.com/auth/cloud-platform
+cp .mcp.json.example .mcp.json
 ```
 
-- Une fenêtre de consentement Google s'ouvre → connectez-vous avec le compte qui
-  a accès à vos clients (ex. `remi.oravec@seo-monkey.fr`).
-- Les 3 scopes couvrent : Search Console (lecture), Analytics (lecture), et le
-  projet de quota.
-- Un fichier est créé ici :
-  `~/.config/gcloud/application_default_credentials.json`
+Dans `.mcp.json`, vérifiez que `GSC_OAUTH_SECRETS_FILE` pointe sur le fichier
+téléchargé (par défaut `${HOME}/gsc-oauth-secrets.json`) et mettez un de vos
+sites dans `GSC_SITE_URL` (ex. `sc-domain:monclient.com`). Pour plusieurs
+clients, voir la note `_multi_clients` du fichier.
 
-### Brancher les serveurs
+### 3. Première connexion
 
-`.mcp.json.example` (Option A) pointe déjà les deux serveurs sur ce fichier ADC.
-Il suffit de `cp .mcp.json.example .mcp.json`, puis de relancer Claude Code.
+Relancez Claude Code dans ce dossier, puis demandez par exemple :
+> « Donne-moi les top requêtes GSC des 28 derniers jours pour `<un de vos sites>` »
 
-`GOOGLE_PROJECT_ID` est fixé à `agence-seo-mcp` (votre projet, APIs déjà activées).
+À la première requête, **une fenêtre Google s'ouvre** → connectez-vous, cliquez
+**Autoriser**. Le jeton est mémorisé : plus besoin de se reconnecter ensuite.
 
-### Vérifier
-
-Dans Claude Code :
-> « Liste les propriétés GA4 accessibles » → outil `get_account_summaries`
-> « Donne les top requêtes GSC des 28 derniers jours pour `<un de vos sites>` »
-
-## Cas particulier GSC
-
-Le serveur `mcp-server-gsc` est documenté pour compte de service, mais la
-librairie Google accepte aussi un fichier ADC « authorized_user ». **Testez
-l'Option A d'abord.** S'il refuse les identifiants utilisateur, deux solutions :
-
-1. **Serveur GSC nativement OAuth** : il existe des MCP Search Console conçus
-   pour OAuth (client ID « Desktop app », consentement navigateur, fichier
-   `client_secrets.json`). On en branche un à la place de `mcp-server-gsc` —
-   mêmes données, auth utilisateur native.
-   Réf. : <https://suganthan.com/blog/google-search-console-mcp-server/>
-2. **Documentation Google** sur l'auth MCP / ADC :
-   <https://docs.cloud.google.com/mcp/authenticate-mcp> et
-   <https://docs.cloud.google.com/sdk/gcloud/reference/auth/application-default/login>
+## Format des sites (`siteUrl`)
+- Propriété de **domaine** : `sc-domain:exemple.com`
+- Propriété d'**URL** : `https://www.exemple.com/`
 
 ## Et les propriétés où vous n'avez AUCUN accès ?
+Si pour un client vous n'êtes ni propriétaire ni utilisateur en GSC, aucune
+méthode technique ne contourne ça : le propriétaire doit accorder un accès en
+lecture à **votre** compte Google. C'est la seule étape qui dépend d'un tiers.
 
-Si pour un client vous n'êtes ni admin, ni utilisateur, ni propriétaire (ni en
-GSC ni en GA4), aucune méthode technique ne contourne ça : le propriétaire doit
-vous accorder un accès en lecture (à votre compte Google, pas au compte de
-service). C'est la seule étape qui dépend réellement d'un tiers.
+## Ajouter GA4 plus tard ?
+GA4 (`analytics-mcp`) nécessite Python. Tant que ce n'est pas dispo, on reste sur
+GSC, qui couvre l'essentiel du pilotage SEO (requêtes, clics, impressions,
+positions, pages).

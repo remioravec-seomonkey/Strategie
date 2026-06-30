@@ -1,6 +1,8 @@
 # Identifiants Google — NE JAMAIS committer
 credentials/*.json
 *.key.json
+gsc-oauth-secrets.json
+.mcp.json
 .env
 .env.*
 

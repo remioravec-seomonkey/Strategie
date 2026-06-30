@@ -1,50 +1,43 @@
-# Strategie — Cockpit SEO multi-clients (MCP Google Search Console + GA4)
+# Strategie — Cockpit SEO multi-clients (MCP Google Search Console)
 
-Ce dépôt connecte Claude aux données SEO de **tous vos clients** via deux serveurs
-MCP, pour analyser la performance, suivre les roadmaps et construire vos stratégies.
+Ce dépôt connecte Claude aux données SEO de **tous vos clients** via Google
+Search Console, pour analyser la performance, suivre les roadmaps et construire
+vos stratégies. **Sans Python, sans gcloud** : Node + connexion Google navigateur.
 
 ## Architecture
 
 ```
 Claude (vous + moi)
         │
-        ├── MCP « gsc »  → Google Search Console API   (mcp-server-gsc)
-        └── MCP « ga4 »  → Google Analytics Data API    (analytics-mcp, officiel Google)
+        └── MCP « gsc »  → Google Search Console API   (suganthan-gsc-mcp, Node)
                                    │
-                    un seul compte de service Google Cloud
+                  OAuth navigateur, en tant que VOUS
                                    │
-        autorisé en lecture sur chaque propriété GSC + GA4 de vos clients
+              vos propriétés GSC clients (accès en lecture existant)
 ```
 
-- **`gsc`** — [`mcp-server-gsc`](https://github.com/ahonn/mcp-server-gsc) (Node.js).
-  Outil principal : `search_analytics` (impressions, clics, CTR, position par
-  requête / page / pays / device, sur n'importe quelle plage de dates).
-- **`ga4`** — [`google-analytics-mcp`](https://github.com/googleanalytics/google-analytics-mcp)
-  (officiel Google, Python). Outils : `get_account_summaries`,
-  `get_property_details`, `run_report`, `run_funnel_report`,
-  `run_realtime_report`, `get_custom_dimensions_and_metrics`,
-  `list_google_ads_links`.
+- **`gsc`** — [`suganthan-gsc-mcp`](https://www.npmjs.com/package/suganthan-gsc-mcp)
+  (Node.js, `npx`). Données : impressions, clics, CTR, position par
+  requête / page / pays / device, sur n'importe quelle plage de dates.
+- **GA4** : optionnel, ajouté plus tard (nécessite Python — voir `docs/AUTH.md`).
 
-Les deux partagent la variable `GOOGLE_APPLICATION_CREDENTIALS` → **un seul
-compte de service** pour toute l'agence.
+Auth : **OAuth dans le navigateur**, avec votre propre compte Google. Aucun
+compte de service à faire ajouter par les clients.
 
-## Installation
+## Installation — simple, sans Python ni gcloud
 
-> **Authentification recommandée : OAuth avec votre propre compte Google** — voir
-> **[`docs/AUTH.md`](docs/AUTH.md)**. Elle utilise votre accès existant à toutes
-> les propriétés clients ; pas besoin de faire ajouter un compte de service par
-> chaque client (ce que Search Console refuse de toute façon dans son UI).
+> Auth **OAuth navigateur** : on se connecte en tant que vous, votre accès
+> existant couvre déjà toutes les propriétés clients. Détail A→Z dans
+> **[`docs/AUTH.md`](docs/AUTH.md)**.
 
-1. Auth : `gcloud auth application-default login --scopes=…webmasters.readonly,…analytics.readonly,…cloud-platform` (commande complète dans `docs/AUTH.md`).
-2. `cp .mcp.json.example .mcp.json` (Option A déjà préremplie : projet `agence-seo-mcp`, fichier ADC).
+1. Créez un **ID client OAuth « Application de bureau »** dans Google Cloud
+   (projet `agence-seo-mcp`) et téléchargez le JSON (`~/gsc-oauth-secrets.json`).
+2. `cp .mcp.json.example .mcp.json` (vérifiez le chemin du JSON et un `GSC_SITE_URL`).
 3. `cp clients/clients.example.json clients/clients.json` et remplir le registre.
-4. Relancer Claude Code et vérifier (`get_account_summaries`).
-
-L'alternative « compte de service » reste documentée dans
-[`docs/SETUP-GOOGLE-CLOUD.md`](docs/SETUP-GOOGLE-CLOUD.md).
+4. Relancer Claude Code → 1re requête GSC → **fenêtre Google → Autoriser**. ✅
 
 ### Prérequis
-- Node.js 18+, Python 3.10+ avec `pipx`.
+- **Node.js 18+** uniquement (déjà là si Claude Code tourne). Pas de Python.
 
 ## Le registre clients
 

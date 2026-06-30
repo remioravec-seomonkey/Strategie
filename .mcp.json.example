@@ -1,17 +1,19 @@
 {
-  "_comment": "MODÈLE — renommez en .mcp.json pour activer (cp .mcp.json.example .mcp.json). Version simplifiée : un seul connecteur, Google Search Console. Auth : OAuth/ADC avec VOTRE compte Google, voir docs/AUTH.md.",
+  "_comment": "MODÈLE — renommez en .mcp.json pour activer (cp .mcp.json.example .mcp.json). Un seul connecteur : Google Search Console, via Node (npx) uniquement. AUCUN Python, AUCUN gcloud.",
 
-  "_auth": "Lancez d'abord : gcloud auth application-default login --scopes=https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/cloud-platform   Le fichier ADC est créé dans ~/.config/gcloud/ (chemin ci-dessous).",
+  "_auth": "Auth = OAuth navigateur. Voir docs/AUTH.md : créez un identifiant OAuth (type « Application de bureau ») dans Google Cloud, téléchargez le JSON, et mettez son chemin dans GSC_OAUTH_SECRETS_FILE ci-dessous. À la 1re requête, une fenêtre Google s'ouvre pour vous connecter — ensuite le jeton est mémorisé.",
 
   "mcpServers": {
     "gsc": {
       "command": "npx",
-      "args": ["-y", "mcp-server-gsc"],
+      "args": ["-y", "suganthan-gsc-mcp"],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/application_default_credentials.json"
+        "GSC_AUTH_MODE": "oauth",
+        "GSC_OAUTH_SECRETS_FILE": "${HOME}/gsc-oauth-secrets.json",
+        "GSC_SITE_URL": "sc-domain:exemple.com"
       }
     }
   },
 
-  "_ga4_optionnel": "Pour ajouter Google Analytics 4 plus tard : ajoutez un serveur 'ga4' (command pipx, args [run, analytics-mcp], env GOOGLE_PROJECT_ID=agence-seo-mcp + le même GOOGLE_APPLICATION_CREDENTIALS), et ajoutez le scope analytics.readonly à la commande gcloud. Voir docs/AUTH.md."
+  "_multi_clients": "Pour plusieurs sites : remplacez GSC_SITE_URL par GSC_SITE_URLS avec la liste séparée par des virgules (ex. \"sc-domain:clientA.com,sc-domain:clientB.fr\"). Format : sc-domain:exemple.com (propriété de domaine) ou https://www.exemple.com/ (propriété d'URL)."
 }
