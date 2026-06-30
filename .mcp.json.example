@@ -1,7 +1,7 @@
 {
-  "_comment": "MODÈLE — renommez en .mcp.json pour activer (cp .mcp.json.example .mcp.json). Deux méthodes d'auth possibles, voir docs/AUTH.md. Recommandé : OAuth/ADC avec VOTRE compte Google (Option A ci-dessous), car il couvre déjà toutes les propriétés clients auxquelles vous avez accès — aucun compte de service à faire ajouter par les clients.",
+  "_comment": "MODÈLE — renommez en .mcp.json pour activer (cp .mcp.json.example .mcp.json). Version simplifiée : un seul connecteur, Google Search Console. Auth : OAuth/ADC avec VOTRE compte Google, voir docs/AUTH.md.",
 
-  "_optionA_oauth_adc": "Lancez d'abord : gcloud auth application-default login --scopes=https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/analytics.readonly,https://www.googleapis.com/auth/cloud-platform   puis pointez GOOGLE_APPLICATION_CREDENTIALS sur le fichier ADC généré (chemin par défaut ci-dessous).",
+  "_auth": "Lancez d'abord : gcloud auth application-default login --scopes=https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/cloud-platform   Le fichier ADC est créé dans ~/.config/gcloud/ (chemin ci-dessous).",
 
   "mcpServers": {
     "gsc": {
@@ -10,16 +10,8 @@
       "env": {
         "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/application_default_credentials.json"
       }
-    },
-    "ga4": {
-      "command": "pipx",
-      "args": ["run", "analytics-mcp"],
-      "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/application_default_credentials.json",
-        "GOOGLE_PROJECT_ID": "agence-seo-mcp"
-      }
     }
   },
 
-  "_optionB_service_account": "Alternative : compte de service. Remplacez les deux GOOGLE_APPLICATION_CREDENTIALS par ${PWD}/credentials/service-account.json. Limite connue : Search Console n'accepte pas un compte de service via son UI, et il faut être admin/propriétaire de chaque propriété — d'où la préférence pour l'Option A."
+  "_ga4_optionnel": "Pour ajouter Google Analytics 4 plus tard : ajoutez un serveur 'ga4' (command pipx, args [run, analytics-mcp], env GOOGLE_PROJECT_ID=agence-seo-mcp + le même GOOGLE_APPLICATION_CREDENTIALS), et ajoutez le scope analytics.readonly à la commande gcloud. Voir docs/AUTH.md."
 }
